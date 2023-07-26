@@ -1,22 +1,87 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
-    "parameters": {},
-    "variables": {},
+    "parameters": {
+        "storage_account_name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the storage account"
+            }
+        },
+        "storage_account_sku": {
+            "type": "string",
+            "metadata": {
+                "description": "Storage Account SKU"
+            },
+            "allowedValues": [
+                "Premium_LRS",
+                "Premium_ZRS",
+                "Standard_GRS",
+                "Standard_GZRS",
+                "Standard_LRS",
+                "Standard_RAGRS",
+                "Standard_RAGZRS",
+                "Standard_ZRS"
+            ],
+            "defaultValue": "Standard_LRS"
+        },
+        "virtual_network_name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the virtual network"
+            }
+        }
+    },
+    "variables": {
+        "tags": {
+            "CreatedBy": "Ramakrishna",
+            "Project": "SAANVIK IT",
+            "Environment": "DEV",
+            "Department": "IT"
+        },
+        "vnet_addressSpace": ["192.168.0.0/24","172.16.0.0/25"],
+        "subnet-name-01": "saanvikit-snet-01",
+        "subnet-name-02": "saanvikit-snet-02",
+        "subnet1-addressPrefix": "192.168.0.0/25",
+        "subnet2-addressPrefix": "192.168.0.128/25"
+    },
     "resources": [
         {
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "2021-01-01",
-            "name": "saanvikit202030724",
-            "location": "UKSouth",
-            "tags": {
-                "CreatedBy": "Ramakrishna",
-                "Project": "SAANVIK IT"
-            },
+            "name": "[toLower(parameters('storage_account_name'))]",
+            "location": "[resourceGroup().location]",
+            "tags": "[variables('tags')]",
             "sku": {
-                "name": "Standard_LRS"
+                "name": "[parameters('storage_account_sku')]"
             },
             "kind": "StorageV2"
+        },
+        {
+            "name": "[parameters('virtual_network_name')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-11-01",
+            "location": "[resourceGroup().location]",
+            "tags": "[variables('tags')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": "[variables('vnet_addressSpace')]"
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('subnet-name-01')]",
+                        "properties": {
+                            "addressPrefix": "[variables('subnet1-addressPrefix')]"
+                        }
+                    },
+                    {
+                        "name": "[variables('subnet-name-02')]",
+                        "properties": {
+                            "addressPrefix": "[variables('subnet2-addressPrefix')]"
+                        }
+                    }
+                ]
+            }
         }
     ],
     "outputs": {}
