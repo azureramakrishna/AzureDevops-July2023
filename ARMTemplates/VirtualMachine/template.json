@@ -196,13 +196,45 @@
             }
         },
         {
+            "type": "Microsoft.Compute/disks",
+            "apiVersion": "2018-06-01",
+            "name": "[concat(parameters('virtual_machine_name'),'-datadisk1')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "properties": {
+                "creationData": {
+                    "createOption": "Empty"
+                },
+                "diskSizeGB": 10
+            }
+        },
+        {
+            "type": "Microsoft.Compute/disks",
+            "apiVersion": "2018-06-01",
+            "name": "[concat(parameters('virtual_machine_name'),'-datadisk2')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "properties": {
+                "creationData": {
+                    "createOption": "Empty"
+                },
+                "diskSizeGB": 10
+            }
+        },
+        {
             "name": "[parameters('virtual_machine_name')]",
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2021-03-01",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Storage/storageAccounts', toLower(parameters('storage_account_name')))]",
-                "[resourceId('Microsoft.Network/networkInterfaces', variables('network_interface_name'))]"
+                "[resourceId('Microsoft.Network/networkInterfaces', variables('network_interface_name'))]",
+                "[resourceId('Microsoft.Compute/disks',concat(parameters('virtual_machine_name'),'-datadisk1'))]",
+                "[resourceId('Microsoft.Compute/disks',concat(parameters('virtual_machine_name'),'-datadisk2'))]"
             ],
             "tags": "[variables('tags')]",
             "properties": {
@@ -225,7 +257,25 @@
                         "name": "[concat(parameters('virtual_machine_name'),'-','osdisk')]",
                         "caching": "ReadWrite",
                         "createOption": "FromImage"
-                    }
+                    },
+                      "dataDisks": [
+                        {
+                            "lun": 0,
+                            "name": "[concat(parameters('virtual_machine_name'),'-datadisk1')]",
+                            "createOption": "attach",
+                            "managedDisk": {
+                                "id": "[resourceId('Microsoft.Compute/disks/', concat(parameters('virtual_machine_name'),'-datadisk1'))]"
+                            }
+                        },
+                        {
+                            "lun": 1,
+                            "name": "[concat(parameters('virtual_machine_name'),'-datadisk2')]",
+                            "createOption": "attach",
+                            "managedDisk": {
+                                "id": "[resourceId('Microsoft.Compute/disks/', concat(parameters('virtual_machine_name'),'-datadisk2'))]"
+                            }
+                        }
+                    ]
                 },
                 "networkProfile": {
                     "networkInterfaces": [
