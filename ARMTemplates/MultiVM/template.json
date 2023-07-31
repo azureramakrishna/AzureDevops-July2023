@@ -1,0 +1,293 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "storage_account_name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the storage account"
+            }
+        },
+        "storage_account_sku": {
+            "type": "string",
+            "metadata": {
+                "description": "Storage Account SKU"
+            },
+            "allowedValues": [
+                "Premium_LRS",
+                "Premium_ZRS",
+                "Standard_GRS",
+                "Standard_GZRS",
+                "Standard_LRS",
+                "Standard_RAGRS",
+                "Standard_RAGZRS",
+                "Standard_ZRS"
+            ],
+            "defaultValue": "Standard_LRS"
+        },
+        "virtual_network_name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the virtual network"
+            }
+        },
+        "virtual_machine_name": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the virtualmachine"
+            }
+        },
+        "virtual_machine_size": {
+            "type": "string",
+            "metadata": {
+                "description": "Size of the virtual machine"
+            }
+        },
+        "adminUser": {
+            "type": "string",
+            "metadata": {
+                "description": "User name for the VM login"
+            }
+        },
+        "adminPassword": {
+            "type": "string",
+            "metadata": {
+                "description": "Password for the VM login"
+            }
+        },
+        "count_value": {
+            "type": "int"
+        }
+    },
+    "variables": {
+        "tags": {
+            "CreatedBy": "Ramakrishna",
+            "Project": "SAANVIK IT",
+            "Environment": "DEV",
+            "Department": "IT"
+        },
+        "vnet_addressSpace": ["192.168.0.0/24"],
+        "subnet-name-01": "saanvikit-snet-01",
+        "subnet-name-02": "saanvikit-snet-02",
+        "subnet1-addressPrefix": "192.168.0.0/25",
+        "subnet2-addressPrefix": "192.168.0.128/25",
+        "public_ip_name": "saanvikit-pubip",
+        "network_security_group_name": "saanvikit-nsg",
+        "network_interface_name": "saanvikit-nic"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2021-01-01",
+            "name": "[toLower(parameters('storage_account_name'))]",
+            "location": "[resourceGroup().location]",
+            "tags": "[variables('tags')]",
+            "sku": {
+                "name": "[parameters('storage_account_sku')]"
+            },
+            "kind": "StorageV2"
+        },
+        {
+            "name": "[parameters('virtual_network_name')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-11-01",
+            "location": "[resourceGroup().location]",
+            "tags": "[variables('tags')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups',variables('network_security_group_name'))]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": "[variables('vnet_addressSpace')]"
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('subnet-name-01')]",
+                        "properties": {
+                            "addressPrefix": "[variables('subnet1-addressPrefix')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('network_security_group_name'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[variables('subnet-name-02')]",
+                        "properties": {
+                            "addressPrefix": "[variables('subnet2-addressPrefix')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[concat(variables('public_ip_name'),'-',copyIndex(1))]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2020-11-01",
+            "location": "[resourceGroup().location]",
+            "tags": "[variables('tags')]",
+            "copy": {
+            "name": "publicipCopy",
+            "count": "[parameters('count_value')]"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Static",
+                "dnsSettings": {
+                    "domainNameLabel": "[concat('saanvikit',copyIndex(1))]"
+                }
+            }
+        },
+        {
+            "name": "[variables('network_security_group_name')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-11-01",
+            "location": "[resourceGroup().location]",
+            "tags": "[variables('tags')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "RDP",
+                        "properties": {
+                            "description": "Allow_RDP",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "3389",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "HTTP",
+                        "properties": {
+                            "description": "Allow_HTTP",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 200,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[concat(variables('network_interface_name'),'-',copyIndex(1))]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2020-11-01",
+            "location": "[resourceGroup().location]",
+            "tags": "[variables('tags')]",
+            "copy": {
+            "name": "nicCopy",
+            "count": "[parameters('count_value')]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtual_network_name'))]",
+                "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('public_ip_name'),'-',copyIndex(1)))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipConfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtual_network_name'), variables('subnet-name-01'))]"
+                            },
+                            "publicipaddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses',concat(variables('public_ip_name'),'-',copyIndex(1)))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/disks",
+            "apiVersion": "2018-06-01",
+            "name": "[concat(parameters('virtual_machine_name'),'-datadisk','-',copyIndex(1))]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "copy": {
+            "name": "datadiskCopy",
+            "count": "[parameters('count_value')]"
+            },
+            "properties": {
+                "creationData": {
+                    "createOption": "Empty"
+                },
+                "diskSizeGB": 10
+            }
+        },       
+        {
+            "name": "[concat(parameters('virtual_machine_name'),'-',copyIndex(1))]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2021-03-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', toLower(parameters('storage_account_name')))]",
+                "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('network_interface_name'),'-',copyIndex(1)))]",
+                "[resourceId('Microsoft.Compute/disks',concat(parameters('virtual_machine_name'),'-datadisk','-',copyIndex(1)))]"
+            ],
+            "tags": "[variables('tags')]",
+            "copy": {
+            "name": "vmCopy",
+            "count": "[parameters('count_value')]"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('virtual_machine_size')]"
+                },
+                "osProfile": {
+                    "computerName": "[concat('saanvikit','-',copyIndex(1))]",
+                    "adminUsername": "[parameters('adminUser')]",
+                    "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "2022-Datacenter",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "[concat(parameters('virtual_machine_name'),'-','osdisk','-',copyIndex(1))]",
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
+                    },
+                      "dataDisks": [
+                        {
+                            "lun": 0,
+                            "name": "[concat(parameters('virtual_machine_name'),'-datadisk','-',copyIndex(1))]",
+                            "createOption": "attach",
+                            "managedDisk": {
+                                "id": "[resourceId('Microsoft.Compute/disks/', concat(parameters('virtual_machine_name'),'-datadisk','-',copyIndex(1)))]"
+                            }
+                        }                       
+                    ]
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('network_interface_name'),'-',copyIndex(1)))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts/', toLower(parameters('storage_account_name')))).primaryEndpoints.blob]"
+                    }
+                }
+            }
+        }
+        
+    ],
+    "outputs": {}
+}
