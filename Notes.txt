@@ -1,0 +1,104 @@
+Portal
+Azure Powershell
+Azure CLI
+
+IAC (Infrastructure as a code):
+
+ARM Templates - JSON
+Terraform 
+Bicep
+
+1 VM --> ARM Templates
+1000 VM --> ARM Templates
+
+
+ARM Templates Structure (Elements):
+----------------------------------
+
+Schema
+ContentVersion
+Parameters
+Variables
+Resources
+Outputs
+
+Install the VS Code Extensions:
+
+- Azure Resource Manager (ARM) Tools
+- Azure Resource Manager Snippets
+
+Helper Functions:
+----------------
+
+toLower
+toUpper
+[resourcegroup().location]
+dependson[]
+resourceId()
+concat(arg1, arg2, arg3)
+copyindex()
+
+
+StorageAccount
+VNET
+SNET
+NSG
+PublicIP
+NIC
+VM
+OSDISK
+Datadisk
+
+ARMTemplates deployment mode:
+
+- Incremental
+- Complete
+
+Azure - ARMTemplates & Bicep 
+AWS - CloudFormation 
+
+
+
+Terraform: Infrastructure as a code 
+---------
+
+
+ARMTemplates										Terraform
+------------										---------
+1. IAC Tool 										1. IAC Tool 
+2. Specific to Azure 								2. Opne source (Azure, AWS, GCP, OCI, Alibaba, VMware, Onpremises etc)
+3. JSON Format 										3. HCL (Hashicorp configuration language) Format 
+4. Extension - .json 								4. Extension - .tf
+5. template.json 									5. main.tf
+   parameters.json 									   variables.tf
+6. schema											6. terraform building blocks
+   contentversion										provider
+   parameters 											resources
+   variables											outputs
+   resources 
+   outputs
+7. Powershell/AzureCLI								7. Terraform lifecycle:
+	New-AzResourceGroupDeployment `						terraform init
+														terraform fmt
+	-ResourceGroup demo-group `							terraform validate
+	-TemplateFile .\template.json `						terraform plan
+	-TemplateParametersFile .\parameters.json `			terraform apply 
+	-verbose											terraform destroy
+
+Getting started with Terraform:
+-------------------------------
+1. Install the terraform - https://developer.hashicorp.com/terraform/downloads
+2. Extract the terraform.exe
+3. Copy and paste terraform.exe --> C:\Windows
+4. To validate the terraform installation 
+		Open cmd --> type terraform 
+
+5. VScode Extensions 
+		- HashiCorp Terraform
+		- Azure Terraform
+6. Provider Names
+	Azure - azurerm
+	AWS - aws
+	GCP - google
+	
+Terraform version - 0.13
