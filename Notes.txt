@@ -100,5 +100,10 @@ Getting started with Terraform:
 	Azure - azurerm
 	AWS - aws
 	GCP - google
-	
-Terraform version - 0.13
+
+Terraform Datasources:
+---------------------
+
+ResourceGroup
+VirtualNetwork 
+Subnet
