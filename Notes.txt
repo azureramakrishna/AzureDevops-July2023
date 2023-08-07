@@ -107,3 +107,17 @@ Terraform Datasources:
 ResourceGroup
 VirtualNetwork 
 Subnet
+
+
+Authenticating using Azure CLI
+Authnticate using service principal
+	- Clientid: 06d64071-fa32-4e90-8f9b-cecc76fdf218
+	- ClientSecret: Xyq8Q~RLT8OQg8nIOMin5Gcr0RClntZRMqk1ec..
+	- Tenantid: 459865f1-a8aa-450a-baec-8b47a9e5c904
+	- SubscriptionId: 6e4924ab-b00c-468f-ae01-e5d33e8786f8
+	
+How to deploy multi resources
+	ARMTemplates - Copyindex()
+	Terraform - count.index
+
+Terraform Modules:
