@@ -120,4 +120,17 @@ How to deploy multi resources
 	ARMTemplates - Copyindex()
 	Terraform - count.index
 
-Terraform Modules:
+Terraform Modules: Reusing the existing configuration (code)
+-----------------
+
+VM - Terraform Module ( Terraform templates )
+
+Local Module  - Code will on local computer
+Remote Module - Code will be on Remote location (github, etc)
+
+
+volvo - Project 
+
+Dev
+Test
+Prod
